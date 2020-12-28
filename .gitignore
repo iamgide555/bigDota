@@ -1,0 +1,8 @@
+### vscode ###
+.vscode
+
+### py env ###
+venv
+
+### jsonData ###
+getData/matchID.json
