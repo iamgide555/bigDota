@@ -16,37 +16,63 @@ def writeFile(payload,path):
         json.dump(payload,f)
     f.close()
 
-def getMatchID(oldData = None):
-    totalTimeCalled = 0
+def changeFileName(matchFileCount = 0):
+  return 'drive/My Drive/Works/externalProjects/Dota visualization/new/matchDetail/matchesDetail' + str (matchFileCount) + '.json'
+
+def checkFile():
+  global matchFileCount, matchDetailFileName
+  path, dirs, files = next(os.walk("drive/My Drive/Works/externalProjects/Dota visualization/new/matchDetail/"))
+  matchFileCount = len(files)
+  matchDetailFileName = changeFileName(matchFileCount)
+
+def getEachMatch(matchID_data):
+    global matchFileCount, matchDetailFileName
+    data = []
+    errorMatchID = []
+    oldMatchDetail = []
     count = 0
-    lastMatchID = ''
-    totalMatchID = oldData or []
+    countForBreak = 0
+    totalCountCalled = 0
     now = datetime.now()
-    for x in range(600):
+    for match_id in matchID_data['match_id']:
+        player = {}
+        match = {}
+        if countForBreak == 100:
+            countForBreak = 0
+            print("you already got 100 data.Please wait for writing into the file......")
+            oldMatchDetail = readFile(matchDetailFileName)
+            oldMatchDetail['data'].extend(data)
+            writeFile(oldMatchDetail,matchDetailFileName)
+            print("Total data in file:",len(oldMatchDetail['data']))
+            if (len(oldMatchDetail['data']) >= 20000):
+              print("This file already reached 20k detail")
+              writeFile({
+                  "data":[]
+              },changeFileName(matchFileCount+1))
+              break
+            data = []
+
         if count >= 60:
             later = datetime.now()
             difference = (later - now).total_seconds()
             if int(difference) <= 60:
                 print('please wait for ',60-int(difference),' sec.')
                 time.sleep(60-int(difference))
+            else:
+                print("You use ",int(difference),' sec. for 60 called')
             now = datetime.now()
             count = 0
         else:
-            if totalMatchID != []:
-                lastMatchID = totalMatchID[len(totalMatchID)-1]
+            player, match = getMatchDetail(match_id)
+            if player == {} and match == {}:
+                errorMatchID.append(match_id)
             else:
-                lastMatchID = None
-            res = service.requestProMatch(lastMatchID)
-            if 'error' in res:
-                matchID = []
-            else:
-                matchID = [id['match_id'] for id in res]
+                writeFile(player,'drive/My Drive/Works/externalProjects/Dota visualization/new/players/'+str(player['match_id'])+'.json')
+                data.append(match)
             count += 1
-            totalTimeCalled += 1
-            totalMatchID.extend(matchID)
-            os.system('cls' if os.name == 'nt' else 'clear')
-            print("You called ",totalTimeCalled," times, Total: ",len(totalMatchID))
-    return totalMatchID
+            countForBreak += 1
+            totalCountCalled += 1
+            print("You called ",totalCountCalled," times, Currently match_id: ",str(match_id))
     
 def getMatchDetail(match_id = None):
     matchDetail = {}
@@ -86,52 +112,13 @@ def getMatchDetail(match_id = None):
         except:
             return {},{}
     
-def getEachMatch(matchID_data):
-    data = []
-    errorMatchID = []
-    oldMatchDetail = []
-    count = 0
-    countForBreak = 0
-    totalCountCalled = 0
-    now = datetime.now()
-    for match_id in matchID_data['match_id']:
-        player = {}
-        match = {}
-        if countForBreak == 100:
-            print("Got 1000 Take a break!!!!")
-            countForBreak = 0
-            oldMatchDetail = readFile('./getData/matchesDetail.json')
-            oldMatchDetail.extend(data)
-            writeFile(oldMatchDetail,'./getData/matchesDetail.json')
-            data = []
-
-        if count >= 60:
-            later = datetime.now()
-            difference = (later - now).total_seconds()
-            if int(difference) <= 60:
-                print('please wait for ',60-int(difference),' sec.')
-                time.sleep(60-int(difference))
-            else:
-                print("You use ",int(difference),' sec. for 60 called')
-            now = datetime.now()
-            count = 0
-        else:
-            player, match = getMatchDetail(match_id)
-            if player == {} and match == {}:
-                errorMatchID.append(match_id)
-            else:
-                writeFile(player,'./getData/players/'+str(player['match_id'])+'.json')
-                data.append(match)
-            count += 1
-            countForBreak += 1
-            totalCountCalled += 1
-            os.system('cls' if os.name == 'nt' else 'clear')
-            print("You called ",totalCountCalled," times, Currently match_id: ",str(match_id))
-
 # main function
+matchFileCount = 0
+matchDetailFileName = ''
 if __name__ == "__main__":
-    # players,match = getMatchDetail(5760137318)
-    matchID = readFile('./getData/matchID.json')
-    oldData = readFile('./getData/matchesDetail.json')
-    lastMatchID = oldData[len(oldData)-1]['match_id']
-    getEachMatch({'matchID':matchID['match_id'][matchID['match_id'].index(int(lastMatchID)):len(matchID['match_id'])-1]})
+  lastMatchID = ''
+  checkFile()
+  matchID = readFile('drive/My Drive/Works/externalProjects/Dota visualization/new/matchID.json')
+  oldData = readFile(matchDetailFileName)
+  lastMatchID = oldData['data'][len(oldData['data'])-1]['match_id']
+  getEachMatch({'match_id':matchID['match_id'][matchID['match_id'].index(int(lastMatchID)):len(matchID['match_id'])-1]})

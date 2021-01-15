@@ -7,5 +7,6 @@ venv
 
 ### jsonData ###
 getData/matchID.json
-getData/players/*
+getData/data/players/*
 getData/matchesDetail.json
+getData/data/matchDetail/*
