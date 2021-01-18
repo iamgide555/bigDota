@@ -112,6 +112,9 @@ def getMatchDetail(match_id = None):
         except:
             return {},{}
     
+def getTeam():
+    data = service.requestTeamDetail()
+    return data
 # main function
 matchFileCount = 0
 matchDetailFileName = ''

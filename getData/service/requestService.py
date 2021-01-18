@@ -13,3 +13,8 @@ def reqestMatchDetail(matchID):
     url = 'https://api.opendota.com/api/matches/' + matchID
     res = requests.get(url)
     return res.json()
+
+def requestTeamDetail():
+    url = 'https://api.opendota.com/api/teams'
+    res = requests.get(url)
+    return res.json()

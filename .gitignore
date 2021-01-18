@@ -6,7 +6,6 @@ venv
 **/__pycache__
 
 ### jsonData ###
-getData/matchID.json
-getData/data/players/*
-getData/matchesDetail.json
+getData/data/*.json
 getData/data/matchDetail/*
+getData/data/players/*
